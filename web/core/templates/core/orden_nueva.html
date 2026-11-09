@@ -1,0 +1,27 @@
+{% extends "core/base.html" %}
+{% block titulo %}Nueva orden{% endblock %}
+{% block contenido %}
+<div class="top"><div><h1>Nueva orden de trabajo</h1><small>El vehículo queda en estado «Recibido»</small></div>
+  <a class="btn sec" href="{% url 'ordenes' %}">← Volver</a></div>
+<div class="card">
+  <form method="post" class="f">{% csrf_token %}
+    <div class="fila">
+      <div><label>Vehículo *</label>
+        <select name="vehiculo" id="vehiculo" required><option value="">-- Seleccione --</option>
+        {% for v in vehiculos %}<option value="{{ v.IdVehiculo }}" data-km="{{ v.Kilometraje }}" {% if sel == v.IdVehiculo|stringformat:"d" %}selected{% endif %}>
+          {{ v.Placa }} · {{ v.Marca }} {{ v.Modelo }} · {{ v.Cliente }}</option>{% endfor %}</select>
+        <small>¿No está? <a href="{% url 'cliente_nuevo' %}">Registre el cliente</a></small></div>
+      <div><label>Kilometraje de ingreso *</label><input type="number" name="km" id="km" min="0" required></div>
+    </div>
+    <div><label>Falla reportada por el cliente *</label><textarea name="falla" rows="3" maxlength="500" required></textarea></div>
+    <div><label>Observaciones (estado de la carrocería, objetos dentro, combustible…)</label><textarea name="observaciones" rows="3" maxlength="1000"></textarea></div>
+    <div><button class="btn">Crear orden</button></div>
+  </form>
+</div>
+{% endblock %}
+{% block js %}<script>
+  // Sugiere el último kilometraje registrado y no permite uno menor
+  const sel = document.getElementById('vehiculo'), km = document.getElementById('km');
+  function sugerir(){ const o = sel.selectedOptions[0]; if (o && o.dataset.km){ km.min = o.dataset.km; km.value = o.dataset.km; } }
+  sel.addEventListener('change', sugerir); sugerir();
+</script>{% endblock %}

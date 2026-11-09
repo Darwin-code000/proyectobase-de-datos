@@ -1,0 +1,13 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iniciar sesión · Taller</title><link rel="stylesheet" href="{% static 'core/app.css' %}"></head>
+<body><div class="centro"><div class="card">
+  <h1>🔧 Taller Automotriz</h1><p class="muted">Sistema de órdenes de trabajo</p>
+  {% if form.errors %}<div class="msg error">Usuario o contraseña incorrectos.</div>{% endif %}
+  <form method="post" class="f">{% csrf_token %}
+    <div><label>Usuario</label><input name="username" autofocus required></div>
+    <div><label>Contraseña</label><input type="password" name="password" required></div>
+    <button class="btn">Entrar</button>
+  </form>
+  <p style="margin-top:14px"><a href="{% url 'consulta' %}">¿Eres cliente? Consulta tu vehículo</a></p>
+</div></div></body></html>

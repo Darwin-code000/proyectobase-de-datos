@@ -1,0 +1,18 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Configuración local (contraseñas)
+.env
+web/.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Editores / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

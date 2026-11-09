@@ -1,0 +1,48 @@
+{% extends "core/base.html" %}{% load humanize %}
+{% block titulo %}Reportes{% endblock %}
+{% block contenido %}
+<div class="top"><div><h1>Reportes</h1><small>Información para la toma de decisiones</small></div>
+  <button class="btn sec no-print" onclick="window.print()">Imprimir</button></div>
+<div class="card no-print"><form class="inline" method="get">
+  <div><label>Desde</label><input type="date" name="desde" value="{{ desde }}"></div>
+  <div><label>Hasta</label><input type="date" name="hasta" value="{{ hasta }}"></div>
+  <button class="btn" style="flex:0">Aplicar</button></form></div>
+
+<div class="grid g2">
+  <div class="card"><h2>1. Ingresos por método de pago</h2><div class="scroll"><table class="tabla">
+    <tr><th>Método</th><th class="r">Pagos</th><th class="r">Total</th><th class="r">Promedio</th><th class="r">Mayor</th><th class="r">Menor</th></tr>
+    {% for r in ingresos %}<tr><td>{{ r.Metodo }}</td><td class="r">{{ r.Pagos }}</td><td class="r">Q{{ r.Total|floatformat:2|intcomma }}</td>
+      <td class="r">Q{{ r.Promedio|floatformat:2|intcomma }}</td><td class="r">Q{{ r.Mayor|floatformat:2|intcomma }}</td><td class="r">Q{{ r.Menor|floatformat:2|intcomma }}</td></tr>
+    {% empty %}<tr><td colspan="6" class="muted">Sin pagos en el período.</td></tr>{% endfor %}</table></div></div>
+
+  <div class="card"><h2>2. Servicios más solicitados</h2><table class="tabla">
+    <tr><th>Servicio</th><th class="r">Veces</th><th class="r">Ingreso</th></tr>
+    {% for r in servicios %}<tr><td>{{ r.Nombre }}</td><td class="r">{{ r.Veces }}</td><td class="r">Q{{ r.Ingreso|floatformat:2|intcomma }}</td></tr>
+    {% empty %}<tr><td colspan="3" class="muted">Sin datos.</td></tr>{% endfor %}</table></div>
+
+  <div class="card"><h2>3. Productividad por mecánico</h2><div class="scroll"><table class="tabla">
+    <tr><th>Mecánico</th><th class="r">Órdenes</th><th class="r">Horas</th><th class="r">Prom. h/servicio</th><th class="r">Mano de obra</th></tr>
+    {% for r in mecanicos %}<tr><td>{{ r.Nombre }}</td><td class="r">{{ r.Ordenes }}</td><td class="r">{{ r.Horas|floatformat:1 }}</td>
+      <td class="r">{{ r.PromHoras|floatformat:2 }}</td><td class="r">Q{{ r.ManoObra|floatformat:2|intcomma }}</td></tr>
+    {% empty %}<tr><td colspan="5" class="muted">Sin datos.</td></tr>{% endfor %}</table></div></div>
+
+  <div class="card"><h2>4. Tiempo de reparación (Recibido → Terminado)</h2>
+    {% if tiempos.N %}<div class="grid g4">
+      <div class="kpi"><div class="n">{{ tiempos.Prom|floatformat:1 }} h</div><div class="l">Promedio</div></div>
+      <div class="kpi"><div class="n">{{ tiempos.Minimo|floatformat:1 }} h</div><div class="l">Mínimo</div></div>
+      <div class="kpi"><div class="n">{{ tiempos.Maximo|floatformat:1 }} h</div><div class="l">Máximo</div></div>
+      <div class="kpi"><div class="n">{{ tiempos.N }}</div><div class="l">Órdenes</div></div></div>
+    {% else %}<p class="muted">Aún no hay órdenes terminadas.</p>{% endif %}</div>
+
+  <div class="card"><h2>5. Cuentas por cobrar</h2><table class="tabla">
+    <tr><th>#</th><th>Cliente</th><th>Placa</th><th>Estado</th><th class="r">Saldo</th></tr>
+    {% for r in saldos %}<tr><td><a href="{% url 'orden_detalle' r.IdOrden %}">#{{ r.IdOrden }}</a></td><td>{{ r.Cliente }}<br><small>{{ r.Telefono }}</small></td><td>{{ r.Placa }}</td>
+      <td><span class="tag e{{ r.IdEstado }}">{{ r.Estado }}</span></td><td class="r bajo">Q{{ r.Saldo|floatformat:2|intcomma }}</td></tr>
+    {% empty %}<tr><td colspan="5" class="muted">No hay saldos pendientes.</td></tr>{% endfor %}</table></div>
+
+  <div class="card"><h2>6. Repuestos por reabastecer</h2><table class="tabla">
+    <tr><th>Código</th><th>Repuesto</th><th class="r">Stock</th><th class="r">Mínimo</th></tr>
+    {% for r in stock %}<tr><td>{{ r.Codigo }}</td><td>{{ r.Nombre }}</td><td class="r bajo">{{ r.Stock }}</td><td class="r">{{ r.StockMinimo }}</td></tr>
+    {% empty %}<tr><td colspan="4" class="muted">Inventario en orden.</td></tr>{% endfor %}</table></div>
+</div>
+{% endblock %}

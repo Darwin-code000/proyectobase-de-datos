@@ -1,0 +1,19 @@
+{% extends "core/base.html" %}{% load humanize %}
+{% block titulo %}Historial{% endblock %}
+{% block contenido %}
+<div class="top"><div><h1>Historial de servicios por vehículo</h1><small>Usa el procedimiento sp_HistorialVehiculo</small></div></div>
+<div class="card"><form class="inline" method="get">
+  <div><input name="placa" value="{{ placa }}" placeholder="Placa, ej. P123ABC" required style="text-transform:uppercase"></div>
+  <button class="btn" style="flex:0">Consultar</button></form></div>
+{% if placa %}{% if v %}
+  <div class="card"><h2>{{ v.Placa }} · {{ v.Marca }} {{ v.Modelo }} {{ v.Anio }}</h2>
+    <p class="muted">Propietario: <a href="{% url 'cliente_editar' v.IdCliente %}">{{ v.Cliente }}</a> · Kilometraje actual: {{ v.Kilometraje|intcomma }}</p>
+    <div class="scroll"><table class="tabla"><tr><th>Orden</th><th>Fecha</th><th class="r">Km</th><th>Servicio</th><th>Mecánico</th><th>Estado</th><th class="r">Costo</th></tr>
+    {% for f in filas %}<tr><td><a href="{% url 'orden_detalle' f.IdOrden %}">#{{ f.IdOrden }}</a></td><td>{{ f.FechaIngreso|date:"d/m/Y" }}</td>
+      <td class="r">{{ f.KmIngreso|intcomma }}</td><td>{{ f.Servicio }}</td><td>{{ f.Mecanico }}</td><td>{{ f.EstadoOrden }}</td><td class="r">Q{{ f.CostoServicio|floatformat:2|intcomma }}</td></tr>
+    {% empty %}<tr><td colspan="7" class="muted">Sin servicios registrados.</td></tr>{% endfor %}</table></div></div>
+  <div class="card"><h2>Órdenes ({{ ordenes|length }})</h2><table class="tabla"><tr><th>#</th><th>Fecha</th><th>Falla</th><th>Estado</th><th class="r">Total</th></tr>
+    {% for o in ordenes %}<tr><td><a href="{% url 'orden_detalle' o.IdOrden %}">#{{ o.IdOrden }}</a></td><td>{{ o.FechaIngreso|date:"d/m/Y" }}</td><td>{{ o.FallaReportada }}</td>
+      <td><span class="tag e{{ o.IdEstado }}">{{ o.Estado }}</span></td><td class="r">Q{{ o.Total|floatformat:2|intcomma }}</td></tr>{% endfor %}</table></div>
+{% else %}<div class="msg error">No existe un vehículo con placa {{ placa }}.</div>{% endif %}{% endif %}
+{% endblock %}

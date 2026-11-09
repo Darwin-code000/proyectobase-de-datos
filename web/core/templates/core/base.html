@@ -1,0 +1,43 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Taller{% endblock %} · Órdenes de Trabajo</title>
+  <link rel="stylesheet" href="{% static 'core/app.css' %}">
+</head>
+<body>
+<div class="app">
+  <nav class="side">
+    {% with u=request.resolver_match.url_name %}
+    <div class="logo">🔧 Taller Automotriz</div>
+    <a href="{% url 'inicio' %}" class="{% if u == 'inicio' %}on{% endif %}">Panel</a>
+    <div class="sec">Operación</div>
+    <a href="{% url 'ordenes' %}" class="{% if 'orden' in u %}on{% endif %}">Órdenes de trabajo</a>
+    <a href="{% url 'clientes' %}" class="{% if 'cliente' in u %}on{% endif %}">Clientes y vehículos</a>
+    <a href="{% url 'historial' %}" class="{% if u == 'historial' %}on{% endif %}">Historial por vehículo</a>
+    <div class="sec">Catálogos</div>
+    <a href="{% url 'catalogo' 'mecanicos' %}">Mecánicos</a>
+    <a href="{% url 'catalogo' 'servicios' %}">Servicios</a>
+    <a href="{% url 'catalogo' 'repuestos' %}">Repuestos</a>
+    <div class="sec">Análisis</div>
+    <a href="{% url 'reportes' %}" class="{% if u == 'reportes' %}on{% endif %}">Reportes</a>
+    <a href="{% url 'consulta' %}" target="_blank">Consulta para clientes ↗</a>
+    <div class="sec">{{ user.username }}</div>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+      <button class="btn sec sm" style="margin-left:10px">Cerrar sesión</button></form>
+    {% endwith %}
+  </nav>
+  <main class="main">
+    {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+    {% block contenido %}{% endblock %}
+  </main>
+</div>
+<script>
+  // Confirmación antes de acciones destructivas: <form data-confirmar="¿Seguro?">
+  document.querySelectorAll('form[data-confirmar]').forEach(f =>
+    f.addEventListener('submit', e => { if (!confirm(f.dataset.confirmar)) e.preventDefault(); }));
+</script>
+{% block js %}{% endblock %}
+</body>
+</html>

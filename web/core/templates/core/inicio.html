@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}{% load humanize %}
+{% block titulo %}Panel{% endblock %}
+{% block contenido %}
+<div class="top"><div><h1>Panel del taller</h1><small>Resumen de la operación</small></div>
+  <a class="btn" href="{% url 'orden_nueva' %}">+ Nueva orden</a></div>
+
+<div class="grid g4" style="margin-bottom:18px">
+  {% for e in por_estado %}
+  <a class="card kpi" href="{% url 'ordenes' %}?estado={{ e.IdEstado }}" style="margin:0">
+    <div class="n">{{ e.Cantidad }}</div><div class="l"><span class="tag e{{ e.IdEstado }}">{{ e.Nombre }}</span></div></a>
+  {% endfor %}
+  <div class="card kpi" style="margin:0"><div class="n">Q{{ ingreso_mes.Total|floatformat:2|intcomma }}</div>
+    <div class="l">Ingresos del mes ({{ ingreso_mes.Pagos }} pagos)</div></div>
+  <a class="card kpi" href="{% url 'catalogo' 'repuestos' %}" style="margin:0">
+    <div class="n {% if stock_bajo %}bajo{% endif %}">{{ stock_bajo }}</div><div class="l">Repuestos con stock bajo</div></a>
+</div>
+
+<div class="grid g2">
+  <div class="card"><h2>Vehículos en el taller</h2><div class="scroll">
+    <table class="tabla"><tr><th>#</th><th>Placa</th><th>Cliente</th><th>Estado</th><th class="r">Días</th></tr>
+    {% for o in activas %}
+      <tr><td><a href="{% url 'orden_detalle' o.IdOrden %}">{{ o.IdOrden }}</a></td><td>{{ o.Placa }}</td>
+      <td>{{ o.Cliente }}</td><td><span class="tag e{{ o.IdEstado }}">{{ o.Estado }}</span></td><td class="r">{{ o.DiasEnTaller }}</td></tr>
+    {% empty %}<tr><td colspan="5" class="muted">No hay vehículos en el taller.</td></tr>{% endfor %}
+    </table></div></div>
+
+  <div class="card"><h2>Carga de mecánicos</h2>
+    <table class="tabla"><tr><th>Mecánico</th><th class="r">Órdenes activas</th><th class="r">Horas</th></tr>
+    {% for m in carga %}<tr><td>{{ m.Nombre }}</td><td class="r">{{ m.OrdenesActivas }}</td><td class="r">{{ m.HorasPendientes|floatformat:1 }}</td></tr>{% endfor %}
+    </table></div>
+</div>
+{% endblock %}

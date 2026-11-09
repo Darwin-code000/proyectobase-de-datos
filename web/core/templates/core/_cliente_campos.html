@@ -1,0 +1,7 @@
+<div class="fila">
+  <div><label>Nombre *</label><input name="nombre" maxlength="100" required value="{{ c.Nombre|default:'' }}"></div>
+  <div><label>NIT</label><input name="nit" maxlength="15" placeholder="CF" value="{{ c.NIT|default:'' }}"></div>
+  <div><label>Teléfono *</label><input name="telefono" maxlength="15" required pattern="[0-9 \-+]{8,15}" title="8 a 15 dígitos" value="{{ c.Telefono|default:'' }}"></div>
+  <div><label>Correo</label><input type="email" name="correo" maxlength="100" value="{{ c.Correo|default:'' }}"></div>
+</div>
+<div><label>Dirección</label><input name="direccion" maxlength="200" value="{{ c.Direccion|default:'' }}"></div>

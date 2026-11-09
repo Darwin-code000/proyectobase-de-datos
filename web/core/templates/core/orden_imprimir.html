@@ -1,0 +1,18 @@
+{% load static humanize %}<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Orden #{{ o.IdOrden }}</title>
+<link rel="stylesheet" href="{% static 'core/app.css' %}"><style>body{background:#fff;padding:24px;max-width:800px;margin:auto}</style></head>
+<body onload="window.print()">
+  <h1>🔧 Taller Automotriz — Orden de trabajo #{{ o.IdOrden }}</h1>
+  <p><b>Cliente:</b> {{ o.Cliente }} · {{ o.Telefono }}<br>
+     <b>Vehículo:</b> {{ o.Placa }} · {{ o.Marca }} {{ o.Modelo }} · {{ o.KmIngreso|intcomma }} km<br>
+     <b>Ingreso:</b> {{ o.FechaIngreso|date:"d/m/Y H:i" }} · <b>Estado:</b> {{ o.Estado }}</p>
+  <p><b>Falla reportada:</b> {{ o.FallaReportada }}<br><b>Diagnóstico:</b> {{ o.Diagnostico|default:"Pendiente" }}</p>
+  <table class="tabla"><tr><th>Concepto</th><th class="r">Cant./Horas</th><th class="r">Subtotal</th></tr>
+    {% for s in servicios %}<tr><td>{{ s.Servicio }} ({{ s.Mecanico }})</td><td class="r">{{ s.HorasManoObra|floatformat:2 }} h</td><td class="r">Q{{ s.Subtotal|floatformat:2|intcomma }}</td></tr>{% endfor %}
+    {% for r in repuestos %}<tr><td>{{ r.Nombre }}</td><td class="r">{{ r.Cantidad }}</td><td class="r">Q{{ r.Subtotal|floatformat:2|intcomma }}</td></tr>{% endfor %}
+    <tfoot><tr><td colspan="2">Descuento</td><td class="r">−Q{{ o.Descuento|floatformat:2 }}</td></tr>
+    <tr><td colspan="2">TOTAL</td><td class="r">Q{{ o.Total|floatformat:2|intcomma }}</td></tr>
+    <tr><td colspan="2">Pagado</td><td class="r">Q{{ o.Pagado|floatformat:2|intcomma }}</td></tr>
+    <tr><td colspan="2">Saldo</td><td class="r">Q{{ o.Saldo|floatformat:2|intcomma }}</td></tr></tfoot></table>
+  <p style="margin-top:60px">______________________ &nbsp;&nbsp;&nbsp; ______________________<br>Firma del cliente &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Recepción</p>
+</body></html>

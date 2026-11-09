@@ -1,0 +1,18 @@
+{% load static humanize %}<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consulta de tu vehículo</title><link rel="stylesheet" href="{% static 'core/app.css' %}"></head>
+<body><div class="centro"><div class="card" style="max-width:560px">
+  <h1>🔧 ¿Cómo va mi vehículo?</h1><p class="muted">Ingresa tu placa y el número de orden de tu comprobante.</p>
+  {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+  <form method="get" class="inline">
+    <div><label>Placa</label><input name="placa" value="{{ placa }}" required style="text-transform:uppercase"></div>
+    <div><label>No. de orden</label><input name="orden" value="{{ num }}" required inputmode="numeric"></div>
+    <button class="btn" style="flex:0">Consultar</button></form>
+  {% if o %}
+    <h2 style="margin-top:20px">{{ o.Marca }} {{ o.Modelo }} · {{ o.Placa }}</h2>
+    {% if o.IdEstado == 6 %}<div class="msg error">Esta orden fue cancelada.</div>{% else %}
+    <div class="pasos">{% for p in pasos %}<span class="{% if forloop.counter <= o.IdEstado %}hecho{% endif %}">{{ p }}</span>{% endfor %}</div>{% endif %}
+    <ul class="timeline">{% for h in historial %}<li>{{ h.Nombre }} <small class="muted">{{ h.FechaCambio|date:"d/m/Y H:i" }}</small></li>{% endfor %}</ul>
+    <p><b>Total:</b> Q{{ o.Total|floatformat:2|intcomma }} · <b>Saldo:</b> Q{{ o.Saldo|floatformat:2|intcomma }}</p>
+  {% endif %}
+</div></div></body></html>

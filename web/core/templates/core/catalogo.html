@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+{% block titulo %}{{ cfg.titulo }}{% endblock %}
+{% block contenido %}
+<div class="top"><div><h1>{{ cfg.titulo }}</h1><small>{{ filas|length }} registros</small></div></div>
+<div class="grid g2">
+  <div class="card"><div class="scroll"><table class="tabla">
+    <tr>{% for f in form %}<th>{{ f.etiqueta }}</th>{% endfor %}<th></th></tr>
+    {% for r in filas %}<tr>{% for v in r.valores %}<td class="{% if r.bajo and forloop.counter >= 4 %}bajo{% endif %}">
+      {% if v is True %}Sí{% elif v is False %}No{% else %}{{ v|default_if_none:"—" }}{% endif %}</td>{% endfor %}
+      <td class="r"><a class="btn sec sm" href="{% url 'catalogo_editar' nombre r.id %}">Editar</a></td></tr>
+    {% endfor %}</table></div></div>
+
+  <div class="card"><h2>{% if editar %}Editar registro{% else %}Nuevo registro{% endif %}</h2>
+    <form method="post" class="f">{% csrf_token %}
+      {% for f in form %}<div>
+        {% if f.tipo == "bool" %}<label><input type="checkbox" name="{{ f.col }}" {% if f.valor %}checked{% endif %}> {{ f.etiqueta }}</label>
+        {% else %}<label>{{ f.etiqueta }}{% if f.req %} *{% endif %}</label>
+          <input name="{{ f.col }}" {% if f.tipo == "number" %}type="number" step="0.01" min="0"{% endif %} value="{{ f.valor|default_if_none:''|stringformat:'s' }}" {% if f.req %}required{% endif %}>
+        {% endif %}</div>{% endfor %}
+      <div class="inline"><button class="btn">Guardar</button>
+        {% if editar %}<a class="btn sec" href="{% url 'catalogo' nombre %}">Cancelar</a>{% endif %}</div>
+    </form>
+    {% if editar %}<form method="post" style="margin-top:12px" data-confirmar="¿Eliminar este registro?">{% csrf_token %}
+      <input type="hidden" name="_eliminar" value="1"><button class="btn rojo sm">Eliminar</button>
+      <small class="muted">Si ya se usó en órdenes no se podrá eliminar; desactívelo.</small></form>{% endif %}
+  </div>
+</div>
+{% endblock %}

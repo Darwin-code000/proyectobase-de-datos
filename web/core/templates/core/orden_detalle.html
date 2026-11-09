@@ -1,0 +1,92 @@
+{% extends "core/base.html" %}{% load humanize %}
+{% block titulo %}Orden #{{ o.IdOrden }}{% endblock %}
+{% block contenido %}
+<div class="top">
+  <div><h1>Orden #{{ o.IdOrden }} <span class="tag e{{ o.IdEstado }}">{{ o.Estado }}</span></h1>
+    <small>{{ o.Placa }} · {{ o.Marca }} {{ o.Modelo }} · {{ o.Cliente }} ({{ o.Telefono }}) · ingresó {{ o.FechaIngreso|date:"d/m/Y H:i" }} con {{ o.KmIngreso|intcomma }} km</small></div>
+  <div><a class="btn sec" href="{% url 'orden_imprimir' o.IdOrden %}" target="_blank">Imprimir</a>
+       <a class="btn sec" href="{% url 'ordenes' %}">← Volver</a></div>
+</div>
+
+<div class="pasos">{% for p in "12345" %}<span class="{% if o.IdEstado != 6 and p|add:0 <= o.IdEstado %}hecho{% endif %}">{% cycle 'Recibido' 'Diagnóstico' 'Reparación' 'Terminado' 'Entregado' %}</span>{% endfor %}</div>
+
+<div class="grid g2">
+  <div>
+    <div class="card"><h2>Cambiar estado</h2>
+      {% if siguiente or puede_cancelar %}
+      <form method="post" action="{% url 'orden_accion' o.IdOrden 'estado' %}" class="f">{% csrf_token %}
+        <div><label>Comentario</label><input name="comentario" maxlength="300" placeholder="Opcional"></div>
+        <div class="inline">
+          {% if siguiente %}<button class="btn verde" name="estado" value="{{ siguiente.IdEstado }}">Pasar a «{{ siguiente.Nombre }}» →</button>{% endif %}
+          {% if puede_cancelar %}<button class="btn rojo" name="estado" value="6" onclick="return confirm('¿Cancelar la orden? Los repuestos regresan al inventario.')">Cancelar orden</button>{% endif %}
+        </div></form>
+      {% else %}<p class="muted">La orden está cerrada.</p>{% endif %}
+    </div>
+
+    <div class="card"><h2>Diagnóstico</h2>
+      <form method="post" action="{% url 'orden_accion' o.IdOrden 'diagnostico' %}" class="f">{% csrf_token %}
+        <div><label>Falla reportada</label><p style="margin:0">{{ o.FallaReportada }}</p></div>
+        <div><label>Diagnóstico del mecánico</label><textarea name="diagnostico" rows="3" maxlength="1000" {% if o.IdEstado > 4 %}disabled{% endif %}>{{ o.Diagnostico|default:"" }}</textarea></div>
+        <div><label>Observaciones</label><textarea name="observaciones" rows="2" maxlength="1000" {% if o.IdEstado > 4 %}disabled{% endif %}>{{ o.Observaciones|default:"" }}</textarea></div>
+        <div><label>Descuento (Q)</label><input type="number" step="0.01" min="0" name="descuento" value="{{ o.Descuento|stringformat:'.2f' }}" {% if o.IdEstado > 4 %}disabled{% endif %}></div>
+        {% if o.IdEstado <= 4 %}<div><button class="btn">Guardar</button></div>{% endif %}
+      </form></div>
+  </div>
+
+  <div>
+    <div class="card"><h2>Costo de la orden</h2>
+      <table class="tabla">
+        <tr><td>Servicios</td><td class="r">Q{{ o.TotalServicios|floatformat:2|intcomma }}</td></tr>
+        <tr><td>Mano de obra</td><td class="r">Q{{ o.TotalManoObra|floatformat:2|intcomma }}</td></tr>
+        <tr><td>Repuestos</td><td class="r">Q{{ o.TotalRepuestos|floatformat:2|intcomma }}</td></tr>
+        <tr><td>Descuento</td><td class="r">−Q{{ o.Descuento|floatformat:2|intcomma }}</td></tr>
+        <tfoot><tr><td>Total</td><td class="r">Q{{ o.Total|floatformat:2|intcomma }}</td></tr>
+        <tr><td>Pagado</td><td class="r">Q{{ o.Pagado|floatformat:2|intcomma }}</td></tr>
+        <tr><td>Saldo</td><td class="r {% if o.Saldo > 0 %}bajo{% endif %}">Q{{ o.Saldo|floatformat:2|intcomma }}</td></tr></tfoot>
+      </table></div>
+
+    <div class="card"><h2>Historial de estados</h2>
+      <ul class="timeline">{% for h in historial %}
+        <li><b>{{ h.Anterior|default:"—" }} → {{ h.Nuevo }}</b><br>
+          <small>{{ h.FechaCambio|date:"d/m/Y H:i" }} · {{ h.Usuario }}{% if h.Comentario %} · {{ h.Comentario }}{% endif %}</small></li>
+      {% endfor %}</ul></div>
+  </div>
+</div>
+
+<div class="card"><h2>Servicios y mecánicos asignados</h2><div class="scroll">
+  <table class="tabla"><tr><th>Servicio</th><th>Mecánico</th><th class="r">Precio</th><th class="r">Horas</th><th class="r">Tarifa</th><th class="r">Subtotal</th></tr>
+  {% for s in servicios %}<tr><td>{{ s.Servicio }}</td><td>{{ s.Mecanico }}</td><td class="r">Q{{ s.Precio|floatformat:2 }}</td>
+    <td class="r">{{ s.HorasManoObra|floatformat:2 }}</td><td class="r">Q{{ s.TarifaHora|floatformat:2 }}</td><td class="r">Q{{ s.Subtotal|floatformat:2|intcomma }}</td></tr>
+  {% empty %}<tr><td colspan="6" class="muted">Aún no hay servicios.</td></tr>{% endfor %}</table></div>
+  {% if abierta %}
+  <form method="post" action="{% url 'orden_accion' o.IdOrden 'servicio' %}" class="inline" style="margin-top:12px">{% csrf_token %}
+    <div><label>Servicio</label><select name="servicio" required>{% for s in cat_servicios %}<option value="{{ s.IdServicio }}">{{ s.Nombre }} (Q{{ s.PrecioBase|floatformat:2 }})</option>{% endfor %}</select></div>
+    <div><label>Mecánico</label><select name="mecanico" required>{% for m in cat_mecanicos %}<option value="{{ m.IdMecanico }}">{{ m.Nombre }} (Q{{ m.TarifaHora|floatformat:2 }}/h)</option>{% endfor %}</select></div>
+    <div style="max-width:120px"><label>Horas</label><input type="number" name="horas" step="0.25" min="0" value="1" required></div>
+    <button class="btn" style="flex:0">Asignar</button></form>{% endif %}
+</div>
+
+<div class="card"><h2>Repuestos utilizados</h2><div class="scroll">
+  <table class="tabla"><tr><th>Código</th><th>Repuesto</th><th class="r">Cantidad</th><th class="r">Precio</th><th class="r">Subtotal</th></tr>
+  {% for r in repuestos %}<tr><td>{{ r.Codigo }}</td><td>{{ r.Nombre }}</td><td class="r">{{ r.Cantidad }}</td>
+    <td class="r">Q{{ r.PrecioUnitario|floatformat:2 }}</td><td class="r">Q{{ r.Subtotal|floatformat:2|intcomma }}</td></tr>
+  {% empty %}<tr><td colspan="5" class="muted">Sin repuestos.</td></tr>{% endfor %}</table></div>
+  {% if abierta %}
+  <form method="post" action="{% url 'orden_accion' o.IdOrden 'repuesto' %}" class="inline" style="margin-top:12px">{% csrf_token %}
+    <div><label>Repuesto</label><select name="repuesto" required>{% for r in cat_repuestos %}<option value="{{ r.IdRepuesto }}">{{ r.Nombre }} · Q{{ r.Precio|floatformat:2 }} · stock {{ r.Stock }}</option>{% endfor %}</select></div>
+    <div style="max-width:120px"><label>Cantidad</label><input type="number" name="cantidad" min="1" value="1" required></div>
+    <button class="btn" style="flex:0">Agregar</button></form>{% endif %}
+</div>
+
+<div class="card"><h2>Pagos</h2><div class="scroll">
+  <table class="tabla"><tr><th>Fecha</th><th>Método</th><th>Referencia</th><th class="r">Monto</th></tr>
+  {% for p in pagos %}<tr><td>{{ p.FechaPago|date:"d/m/Y H:i" }}</td><td>{{ p.Metodo }}</td><td>{{ p.Referencia|default:"—" }}</td><td class="r">Q{{ p.Monto|floatformat:2|intcomma }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="muted">Sin pagos.</td></tr>{% endfor %}</table></div>
+  {% if o.Saldo > 0 and o.IdEstado != 6 %}
+  <form method="post" action="{% url 'orden_accion' o.IdOrden 'pago' %}" class="inline" style="margin-top:12px">{% csrf_token %}
+    <div><label>Método</label><select name="metodo">{% for m in metodos %}<option value="{{ m.IdMetodoPago }}">{{ m.Nombre }}</option>{% endfor %}</select></div>
+    <div><label>Monto</label><input type="number" name="monto" step="0.01" min="0.01" max="{{ o.Saldo|stringformat:'.2f' }}" value="{{ o.Saldo|stringformat:'.2f' }}" required></div>
+    <div><label>Referencia (tarjeta / transferencia)</label><input name="referencia" maxlength="50"></div>
+    <button class="btn verde" style="flex:0">Registrar pago</button></form>{% endif %}
+</div>
+{% endblock %}

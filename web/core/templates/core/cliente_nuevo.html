@@ -1,0 +1,12 @@
+{% extends "core/base.html" %}
+{% block titulo %}Nuevo cliente{% endblock %}
+{% block contenido %}
+<div class="top"><div><h1>Nuevo cliente</h1><small>Se registra el cliente con su primer vehículo en una sola transacción</small></div>
+  <a class="btn sec" href="{% url 'clientes' %}">← Volver</a></div>
+<form method="post" class="f">{% csrf_token %}
+  <div class="card"><h2>Datos del cliente</h2>
+    {% with c=None %}{% include "core/_cliente_campos.html" %}{% endwith %}</div>
+  <div class="card"><h2>Vehículo</h2>{% include "core/_vehiculo_campos.html" %}</div>
+  <div><button class="btn">Guardar cliente y vehículo</button></div>
+</form>
+{% endblock %}

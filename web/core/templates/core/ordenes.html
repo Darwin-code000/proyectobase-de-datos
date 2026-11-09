@@ -1,0 +1,25 @@
+{% extends "core/base.html" %}{% load humanize %}
+{% block titulo %}Órdenes{% endblock %}
+{% block contenido %}
+<div class="top"><div><h1>Órdenes de trabajo</h1><small>{{ ordenes|length }} órdenes</small></div>
+  <a class="btn" href="{% url 'orden_nueva' %}">+ Nueva orden</a></div>
+<div class="card">
+  <form class="inline" method="get" style="margin-bottom:14px">
+    <div><input name="q" value="{{ q }}" placeholder="Placa o cliente"></div>
+    <div><select name="estado"><option value="">Todos los estados</option>
+      {% for e in estados %}<option value="{{ e.IdEstado }}" {% if estado == e.IdEstado|stringformat:"d" %}selected{% endif %}>{{ e.Nombre }}</option>{% endfor %}
+    </select></div>
+    <button class="btn sec" style="flex:0">Filtrar</button></form>
+  <div class="scroll"><table class="tabla">
+    <tr><th>#</th><th>Ingreso</th><th>Placa</th><th>Vehículo</th><th>Cliente</th><th>Estado</th>
+        <th class="r">Total</th><th class="r">Saldo</th></tr>
+    {% for o in ordenes %}
+    <tr><td><a href="{% url 'orden_detalle' o.IdOrden %}"><b>{{ o.IdOrden }}</b></a></td>
+      <td>{{ o.FechaIngreso|date:"d/m/Y" }}</td><td>{{ o.Placa }}</td><td>{{ o.Marca }} {{ o.Modelo }}</td>
+      <td>{{ o.Cliente }}</td><td><span class="tag e{{ o.IdEstado }}">{{ o.Estado }}</span></td>
+      <td class="r">Q{{ o.Total|floatformat:2|intcomma }}</td>
+      <td class="r {% if o.Saldo > 0 %}bajo{% endif %}">Q{{ o.Saldo|floatformat:2|intcomma }}</td></tr>
+    {% empty %}<tr><td colspan="8" class="muted">Sin órdenes.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% endblock %}
